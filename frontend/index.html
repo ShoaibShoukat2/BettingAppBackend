@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arbitrage Betting Live Odds</title>
+
+  <!-- MDB UI Kit -->
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.0/mdb.min.css"
+    rel="stylesheet"
+  />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.0/mdb.min.js"></script>
+
+  <style>
+    body {
+      background-color: #0f172a;
+      color: white;
+      font-family: "Poppins", sans-serif;
+    }
+    .card {
+      background-color: #1e293b;
+      border-radius: 1rem;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    .odds-item {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5rem 0;
+    }
+    .badge {
+      font-size: 0.75rem;
+    }
+  </style>
+
+
+</head>
+<body>
+  <div class="container py-5">
+    <h2 class="text-center mb-4">🎰 Live Arbitrage Odds Feed</h2>
+
+    <div class="card p-4">
+      <div class="d-flex justify-content-between mb-3">
+        <h5 class="mb-0">Live Odds Updates</h5>
+        <button id="connectBtn" class="btn btn-success btn-sm">Connect</button>
+        <button id="disconnectBtn" class="btn btn-danger btn-sm" disabled>Disconnect</button>
+      </div>
+
+      <div id="status" class="text-muted mb-3">Status: Disconnected</div>
+
+      <div id="oddsFeed" class="odds-list">
+        <p class="text-muted">No data yet. Click "Connect" to start streaming live odds.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws;
+
+    const statusEl = document.getElementById('status');
+    const feedEl = document.getElementById('oddsFeed');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+
+    connectBtn.addEventListener('click', () => {
+      ws = new WebSocket('ws://localhost:8000/odds/ws');
+
+      ws.onopen = () => {
+        statusEl.textContent = "✅ Connected to WebSocket feed";
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+        feedEl.innerHTML = "<p class='text-info'>Waiting for odds updates...</p>";
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        displayOdds(data);
+      };
+
+      ws.onclose = () => {
+        statusEl.textContent = "🔴 Disconnected";
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket Error:', error);
+        statusEl.textContent = "⚠️ Connection error (check backend)";
+      };
+    });
+
+    disconnectBtn.addEventListener('click', () => {
+      if (ws) ws.close();
+    });
+
+    function displayOdds(data) {
+      feedEl.innerHTML = "";
+      data.forEach((item) => {
+        const div = document.createElement('div');
+        div.classList.add('odds-item');
+        div.innerHTML = `
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>${item.match}</strong>
+              <div class="text-muted small">${item.sport} — ${item.market}</div>
+            </div>
+            <div>
+              ${item.outcomes
+                .map(
+                  (o) => `
+                  <span class="badge bg-info me-1">${o.name}: ${o.odds}</span>
+                `
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+        feedEl.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>
