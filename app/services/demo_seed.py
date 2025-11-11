@@ -361,3 +361,7 @@ if __name__ == "__main__":
     print(f"  - {result['events_count']} events")
     print(f"  - {len(result['sports'])} sports")
     print(f"  - {len(result['bookmakers'])} bookmakers")
+    
+    
+    
+    

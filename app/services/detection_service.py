@@ -246,7 +246,10 @@ class DetectionService:
                         'expires_at': expires_at
                     })
         
+    
         return middles
+    
+
     
     @staticmethod
     def _extract_lines(row1, row2) -> Tuple[float, float]:

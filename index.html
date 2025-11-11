@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Arbitrage Platform - Advanced Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0a0a0a',
+                            800: '#1a1a1a',
+                            700: '#2a2a2a',
+                            600: '#3a3a3a',
+                        },
+                        orange: {
+                            500: '#ff6b35',
+                            600: '#ff5722',
+                            400: '#ff8960',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(255, 107, 53, 0.6); }
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-slide-in { animation: slideIn 0.5s ease-out; }
+        .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .gradient-animate {
+            background: linear-gradient(270deg, #ff6b35, #ff5722, #ff8960);
+            background-size: 600% 600%;
+            animation: gradient-shift 3s ease infinite;
+        }
+        .glass-effect {
+            background: rgba(26, 26, 26, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+        }
+        .response-box {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .response-box::-webkit-scrollbar {
+            width: 8px;
+        }
+        .response-box::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        .response-box::-webkit-scrollbar-thumb {
+            background: #ff6b35;
+            border-radius: 4px;
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(255, 107, 53, 0.3);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(26, 26, 26, 0.8) 100%);
+        }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff5722 100%);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+        }
+    </style>
+
+
+
+</head>
+<body class="bg-dark-900 text-gray-100 min-h-screen">
+    <!-- Header with Gradient -->
+    <div class="gradient-animate shadow-2xl">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="animate-slide-in">
+                    <h1 class="text-4xl md:text-5xl font-bold text-white flex items-center gap-3">
+                        <span class="text-5xl">🎯</span>
+                        <span>Sports Arbitrage Platform</span>
+                    </h1>
+                    <p class="text-orange-100 mt-2 text-lg">Advanced API Testing Dashboard v3.0</p>
+                </div>
+                <div class="flex items-center gap-3 animate-slide-in">
+                    <div class="pulse-dot w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span class="text-white font-semibold">Live System</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Configuration -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="glass-effect rounded-2xl shadow-2xl p-6 mb-6 animate-slide-in card-hover">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">
+                <span class="text-orange-500">⚙️</span>
+                <span>System Configuration</span>
+            </h2>
+            <div class="flex flex-col md:flex-row gap-4 items-end">
+                <div class="flex-1">
+                    <label class="block font-semibold mb-2 text-orange-400">API Base URL:</label>
+                    <input type="text" id="apiUrl" value="http://localhost:8000" 
+                        class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all">
+                </div>
+                <button onclick="testConnection()" 
+                    class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                    🔌 Test Connection
+                </button>
+            </div>
+            <div id="connectionStatus" class="mt-4"></div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stat-card glass-effect rounded-xl p-6 card-hover animate-slide-in">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Total Opportunities</p>
+                        <p class="text-3xl font-bold text-orange-500" id="stat-opportunities">-</p>
+                    </div>
+                    <div class="text-5xl">💰</div>
+                </div>
+            </div>
+            <div class="stat-card glass-effect rounded-xl p-6 card-hover animate-slide-in" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Active Sessions</p>
+                        <p class="text-3xl font-bold text-orange-500" id="stat-sessions">-</p>
+                    </div>
+                    <div class="text-5xl">👥</div>
+                </div>
+            </div>
+            <div class="stat-card glass-effect rounded-xl p-6 card-hover animate-slide-in" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Total Bets</p>
+                        <p class="text-3xl font-bold text-orange-500" id="stat-bets">-</p>
+                    </div>
+                    <div class="text-5xl">🎲</div>
+                </div>
+            </div>
+            <div class="stat-card glass-effect rounded-xl p-6 card-hover animate-slide-in" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm mb-1">Avg ROI</p>
+                        <p class="text-3xl font-bold text-orange-500" id="stat-roi">-</p>
+                    </div>
+                    <div class="text-5xl">📈</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="glass-effect rounded-2xl shadow-2xl mb-6 overflow-hidden">
+            <nav class="flex overflow-x-auto">
+                <button onclick="showTab('admin')" class="tab-btn tab-active px-6 py-4 font-semibold flex items-center gap-2 transition-all whitespace-nowrap" id="tab-admin">
+                    <span>🔧</span><span>Admin</span>
+                </button>
+                <button onclick="showTab('opportunities')" class="tab-btn px-6 py-4 font-semibold flex items-center gap-2 hover:bg-dark-700 transition-all whitespace-nowrap" id="tab-opportunities">
+                    <span>💰</span><span>Opportunities</span>
+                </button>
+                <button onclick="showTab('odds')" class="tab-btn px-6 py-4 font-semibold flex items-center gap-2 hover:bg-dark-700 transition-all whitespace-nowrap" id="tab-odds">
+                    <span>📊</span><span>Odds</span>
+                </button>
+                <button onclick="showTab('sessions')" class="tab-btn px-6 py-4 font-semibold flex items-center gap-2 hover:bg-dark-700 transition-all whitespace-nowrap" id="tab-sessions">
+                    <span>👤</span><span>Sessions</span>
+                </button>
+                <button onclick="showTab('bets')" class="tab-btn px-6 py-4 font-semibold flex items-center gap-2 hover:bg-dark-700 transition-all whitespace-nowrap" id="tab-bets">
+                    <span>🎲</span><span>Bets</span>
+                </button>
+                <button onclick="showTab('websocket')" class="tab-btn px-6 py-4 font-semibold flex items-center gap-2 hover:bg-dark-700 transition-all whitespace-nowrap" id="tab-websocket">
+                    <span>🔌</span><span>WebSocket</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Admin Tab -->
+            <div id="content-admin" class="tab-content">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Generate Demo Data -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🌱</span>
+                            <span>Generate Demo Data</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">Events per sport:</label>
+                        <input type="number" id="numEvents" value="5" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none">
+                        <button onclick="seedData()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Generate Data
+                        </button>
+                        <div id="seedResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Compute Opportunities -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🔍</span>
+                            <span>Compute Opportunities</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Run all detection algorithms (Arbitrage, Middles, EV, Lows)</p>
+                        <button onclick="computeOpportunities()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Compute All
+                        </button>
+                        <div id="computeResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Refresh Opportunities -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">♻️</span>
+                            <span>Refresh Opportunities</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Cleanup expired + recompute all</p>
+                        <button onclick="refreshOpportunities()" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Refresh
+                        </button>
+                        <div id="refreshResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- System Stats -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📈</span>
+                            <span>System Statistics</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Get comprehensive system stats</p>
+                        <button onclick="getStats()" class="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Stats
+                        </button>
+                        <div id="statsResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">💚</span>
+                            <span>System Health</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Check all data files and system status</p>
+                        <button onclick="checkHealth()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Check Health
+                        </button>
+                        <div id="healthResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Reset Data -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover border-2 border-red-500/30">
+                        <h3 class="text-xl font-bold mb-4 text-red-500 flex items-center gap-2">
+                            <span>⚠️</span>
+                            <span>Reset All Data</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">DANGER: This will delete everything!</p>
+                        <button onclick="resetData()" class="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Reset Everything
+                        </button>
+                        <div id="resetResponse" class="mt-4 response-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Opportunities Tab -->
+            <div id="content-opportunities" class="tab-content hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Get All Opportunities -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover md:col-span-2">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">💰</span>
+                            <span>Get Opportunities Feed</span>
+                        </h3>
+                        <div class="grid md:grid-cols-4 gap-4 mb-4">
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Category:</label>
+                                <select id="oppCategory" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                                    <option value="">All</option>
+                                    <option value="arbitrage">Arbitrage</option>
+                                    <option value="middle">Middles</option>
+                                    <option value="ev">EV</option>
+                                    <option value="low">Lows</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Sport:</label>
+                                <select id="oppSport" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                                    <option value="">All</option>
+                                    <option value="Football">Football</option>
+                                    <option value="Basketball">Basketball</option>
+                                    <option value="Tennis">Tennis</option>
+                                    <option value="Ice Hockey">Ice Hockey</option>
+                                    <option value="Baseball">Baseball</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Min ROI %:</label>
+                                <input type="number" id="minROI" value="0" step="0.1" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Top N:</label>
+                                <input type="number" id="topN" value="20" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                        </div>
+                        <button onclick="getOpportunities()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Opportunities
+                        </button>
+                        <div id="opportunitiesResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get Opportunity by ID -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🔍</span>
+                            <span>Get Single Opportunity</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">Opportunity ID:</label>
+                        <input type="text" id="oppId" placeholder="Enter opportunity ID" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <button onclick="getOpportunityById()" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get by ID
+                        </button>
+                        <div id="oppByIdResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Opportunity Stats -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📊</span>
+                            <span>Opportunity Stats</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Get summary statistics</p>
+                        <button onclick="getOppStats()" class="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Stats
+                        </button>
+                        <div id="oppStatsResponse" class="mt-4 response-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Odds Tab -->
+            <div id="content-odds" class="tab-content hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Get Live Odds -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover md:col-span-2">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📊</span>
+                            <span>Get Live Odds</span>
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Sport:</label>
+                                <select id="oddsSport" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                                    <option value="">All</option>
+                                    <option value="Football">Football</option>
+                                    <option value="Basketball">Basketball</option>
+                                    <option value="Tennis">Tennis</option>
+                                    <option value="Ice Hockey">Ice Hockey</option>
+                                    <option value="Baseball">Baseball</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Market:</label>
+                                <input type="text" id="oddsMarket" placeholder="e.g., Match Winner" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                        </div>
+                        <button onclick="getLiveOdds()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Live Odds
+                        </button>
+                        <div id="oddsResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get Sports -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🏀</span>
+                            <span>Get Sports List</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Get all available sports</p>
+                        <button onclick="getSports()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Sports
+                        </button>
+                        <div id="sportsResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get Markets -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📈</span>
+                            <span>Get Markets List</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">Sport (optional):</label>
+                        <input type="text" id="marketsSport" placeholder="e.g., Football" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <button onclick="getMarkets()" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Markets
+                        </button>
+                        <div id="marketsResponse" class="mt-4 response-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sessions Tab -->
+            <div id="content-sessions" class="tab-content hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Create Session -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">➕</span>
+                            <span>Create Session</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">User Name:</label>
+                        <input type="text" id="userName" value="Test User" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <button onclick="createSession()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Create Session
+                        </button>
+                        <div id="createSessionResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get Session by ID -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🔍</span>
+                            <span>Get Session</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">Session ID:</label>
+                        <input type="text" id="sessionId" placeholder="Enter session ID" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <button onclick="getSession()" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Session
+                        </button>
+                        <div id="getSessionResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get All Sessions -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover md:col-span-2">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📋</span>
+                            <span>Get All Sessions</span>
+                        </h3>
+                        <button onclick="getAllSessions()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get All Sessions
+                        </button>
+                        <div id="allSessionsResponse" class="mt-4 response-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bets Tab -->
+            <div id="content-bets" class="tab-content hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Place Bet -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover md:col-span-2">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">🎲</span>
+                            <span>Place Bet</span>
+                        </h3>
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Session ID:</label>
+                                <input type="text" id="betSessionId" placeholder="Session ID" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Opportunity ID:</label>
+                                <input type="text" id="betOppId" placeholder="Opportunity ID" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block mb-2 font-semibold text-orange-400">Opportunity Type:</label>
+                                <select id="betOppType" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                                    <option value="arbitrage">Arbitrage</option>
+                                    <option value="middle">Middle</option>
+                                    <option value="ev">EV</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block mb-2 font-semibold text-orange-400">Total Stake ($):</label>
+                            <input type="number" id="totalStake" value="1000" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                        </div>
+                        <button onclick="placeBet()" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Place Bet
+                        </button>
+                        <div id="placeBetResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get Bets by Session -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📋</span>
+                            <span>Get Bets by Session</span>
+                        </h3>
+                        <label class="block mb-2 font-semibold text-orange-400">Session ID:</label>
+                        <input type="text" id="betsSessionId" placeholder="Enter session ID" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl mb-4 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <button onclick="getBetsBySession()" class="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get Bets
+                        </button>
+                        <div id="sessionBetsResponse" class="mt-4 response-box"></div>
+                    </div>
+
+                    <!-- Get All Bets -->
+                    <div class="glass-effect rounded-2xl shadow-xl p-6 card-hover">
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                            <span class="text-orange-500">📊</span>
+                            <span>Get All Bets</span>
+                        </h3>
+                        <p class="text-gray-400 mb-4">Get all bets across all sessions</p>
+                        <button onclick="getAllBets()" class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            Get All Bets
+                        </button>
+                        <div id="allBetsResponse" class="mt-4 response-box"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WebSocket Tab -->
+            <div id="content-websocket" class="tab-content hidden">
+                <div class="glass-effect rounded-2xl shadow-xl p-6">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="text-orange-500">🔌</span>
+                        <span>WebSocket Live Odds Streaming</span>
+                    </h3>
+                    <div class="mb-4">
+                        <label class="block mb-2 font-semibold text-orange-400">WebSocket URL:</label>
+                        <input type="text" id="wsUrl" value="ws://localhost:8000/odds/ws" class="w-full px-4 py-3 bg-dark-800 border-2 border-dark-600 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="connectWebSocket()" class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            🔌 Connect
+                        </button>
+                        <button onclick="disconnectWebSocket()" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                            ⚡ Disconnect
+                        </button>
+                    </div>
+                    <div id="wsStatus" class="mb-4 p-4 bg-dark-800 rounded-xl border-2 border-dark-600"></div>
+                    <div class="bg-dark-900 text-green-400 p-4 rounded-xl response-box font-mono text-sm border-2 border-dark-700" id="wsMessages">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="pulse-dot w-2 h-2 bg-green-400 rounded-full"></span>
+                            <span class="text-orange-400 font-bold">WebSocket Console</span>
+                        </div>
+                        <div class="text-gray-500">Waiting for connection...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Footer -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="glass-effect rounded-2xl p-6 text-center">
+            <p class="text-gray-400">
+                <span class="text-orange-500 font-bold">Sports Arbitrage Platform</span> | 
+                Advanced API Testing Dashboard v3.0 | 
+                Made with <span class="text-red-500">❤️</span> for Professional Traders
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const API_URL = () => document.getElementById('apiUrl').value;
+
+        // Tab Management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('tab-active');
+            });
+            
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).classList.add('tab-active');
+        }
+
+        // Display Response with Animation
+        function displayResponse(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            const color = isError ? 'red' : 'orange';
+            const bgColor = isError ? 'rgba(239, 68, 68, 0.1)' : 'rgba(255, 107, 53, 0.1)';
+            el.innerHTML = `<pre class="p-4 rounded-xl border-2 overflow-x-auto text-sm animate-slide-in" style="background: ${bgColor}; border-color: ${isError ? '#ef4444' : '#ff6b35'}">${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Update Stats in Real-time
+        async function updateStats() {
+            try {
+                const response = await fetch(`${API_URL()}/admin/stats`);
+                const data = await response.json();
+                
+                document.getElementById('stat-opportunities').textContent = data.opportunities?.total || 0;
+                document.getElementById('stat-sessions').textContent = data.sessions?.total || 0;
+                document.getElementById('stat-bets').textContent = data.bets?.total || 0;
+                document.getElementById('stat-roi').textContent = data.opportunities?.avg_roi ? data.opportunities.avg_roi.toFixed(2) + '%' : '0%';
+            } catch (error) {
+                console.error('Failed to update stats:', error);
+            }
+        }
+
+        // Test Connection
+        async function testConnection() {
+            try {
+                const response = await fetch(`${API_URL()}/health`);
+                const data = await response.json();
+                document.getElementById('connectionStatus').innerHTML = 
+                    `<div class="flex items-center gap-3 p-4 bg-green-500/20 border-2 border-green-500 rounded-xl animate-slide-in">
+                        <div class="pulse-dot w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span class="text-green-400 font-bold">✅ Connected Successfully!</span>
+                        <span class="text-gray-400">Status: ${data.status}</span>
+                    </div>`;
+                updateStats();
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = 
+                    `<div class="flex items-center gap-3 p-4 bg-red-500/20 border-2 border-red-500 rounded-xl animate-slide-in">
+                        <span class="text-red-400 font-bold">❌ Connection Failed</span>
+                        <span class="text-gray-400">${error.message}</span>
+                    </div>`;
+            }
+        }
+
+        // Admin APIs
+        async function seedData() {
+            const numEvents = document.getElementById('numEvents').value;
+            try {
+                const response = await fetch(`${API_URL()}/admin/seed?num_events_per_sport=${numEvents}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                displayResponse('seedResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('seedResponse', {error: error.message}, true);
+            }
+        }
+
+        async function computeOpportunities() {
+            try {
+                const response = await fetch(`${API_URL()}/opportunities/compute`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                displayResponse('computeResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('computeResponse', {error: error.message}, true);
+            }
+        }
+
+        async function refreshOpportunities() {
+            try {
+                const response = await fetch(`${API_URL()}/admin/refresh`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                displayResponse('refreshResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('refreshResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getStats() {
+            try {
+                const response = await fetch(`${API_URL()}/admin/stats`);
+                const data = await response.json();
+                displayResponse('statsResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('statsResponse', {error: error.message}, true);
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_URL()}/admin/health`);
+                const data = await response.json();
+                displayResponse('healthResponse', data);
+            } catch (error) {
+                displayResponse('healthResponse', {error: error.message}, true);
+            }
+        }
+
+        async function resetData() {
+            if (!confirm('⚠️ Are you ABSOLUTELY sure? This will DELETE ALL DATA!')) return;
+            try {
+                const response = await fetch(`${API_URL()}/admin/reset`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                displayResponse('resetResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('resetResponse', {error: error.message}, true);
+            }
+        }
+
+        // Opportunities APIs
+        async function getOpportunities() {
+            const category = document.getElementById('oppCategory').value;
+            const sport = document.getElementById('oppSport').value;
+            const minROI = document.getElementById('minROI').value;
+            const topN = document.getElementById('topN').value;
+
+            let url = `${API_URL()}/opportunities/feed?top_n=${topN}&min_roi=${minROI}`;
+            if (category) url += `&category=${category}`;
+            if (sport) url += `&sport=${sport}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResponse('opportunitiesResponse', data);
+            } catch (error) {
+                displayResponse('opportunitiesResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getOpportunityById() {
+            const id = document.getElementById('oppId').value;
+            if (!id) {
+                alert('⚠️ Please enter opportunity ID');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL()}/opportunities/${id}`);
+                const data = await response.json();
+                displayResponse('oppByIdResponse', data);
+            } catch (error) {
+                displayResponse('oppByIdResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getOppStats() {
+            try {
+                const response = await fetch(`${API_URL()}/opportunities/stats/summary`);
+                const data = await response.json();
+                displayResponse('oppStatsResponse', data);
+            } catch (error) {
+                displayResponse('oppStatsResponse', {error: error.message}, true);
+            }
+        }
+
+        // Odds APIs
+        async function getLiveOdds() {
+            const sport = document.getElementById('oddsSport').value;
+            const market = document.getElementById('oddsMarket').value;
+
+            let url = `${API_URL()}/odds/live?`;
+            if (sport) url += `sport=${sport}&`;
+            if (market) url += `market=${market}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResponse('oddsResponse', data);
+            } catch (error) {
+                displayResponse('oddsResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getSports() {
+            try {
+                const response = await fetch(`${API_URL()}/odds/sports`);
+                const data = await response.json();
+                displayResponse('sportsResponse', data);
+            } catch (error) {
+                displayResponse('sportsResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getMarkets() {
+            const sport = document.getElementById('marketsSport').value;
+            let url = `${API_URL()}/odds/markets`;
+            if (sport) url += `?sport=${sport}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResponse('marketsResponse', data);
+            } catch (error) {
+                displayResponse('marketsResponse', {error: error.message}, true);
+            }
+        }
+
+        // Sessions APIs
+        async function createSession() {
+            const userName = document.getElementById('userName').value;
+            try {
+                const response = await fetch(`${API_URL()}/session/init`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({user_name: userName})
+                });
+                const data = await response.json();
+                displayResponse('createSessionResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('createSessionResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getSession() {
+            const sessionId = document.getElementById('sessionId').value;
+            if (!sessionId) {
+                alert('⚠️ Please enter session ID');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL()}/session/${sessionId}`);
+                const data = await response.json();
+                displayResponse('getSessionResponse', data);
+            } catch (error) {
+                displayResponse('getSessionResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getAllSessions() {
+            try {
+                const response = await fetch(`${API_URL()}/session/`);
+                const data = await response.json();
+                displayResponse('allSessionsResponse', data);
+            } catch (error) {
+                displayResponse('allSessionsResponse', {error: error.message}, true);
+            }
+        }
+
+        // Bets APIs
+        async function placeBet() {
+            const sessionId = document.getElementById('betSessionId').value;
+            const oppId = document.getElementById('betOppId').value;
+            const oppType = document.getElementById('betOppType').value;
+            const stake = document.getElementById('totalStake').value;
+
+            if (!sessionId || !oppId) {
+                alert('⚠️ Please enter session ID and opportunity ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL()}/bets/place`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        opportunity_id: oppId,
+                        opportunity_type: oppType,
+                        total_stake: parseFloat(stake)
+                    })
+                });
+                const data = await response.json();
+                displayResponse('placeBetResponse', data);
+                updateStats();
+            } catch (error) {
+                displayResponse('placeBetResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getBetsBySession() {
+            const sessionId = document.getElementById('betsSessionId').value;
+            if (!sessionId) {
+                alert('⚠️ Please enter session ID');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL()}/bets/session/${sessionId}`);
+                const data = await response.json();
+                displayResponse('sessionBetsResponse', data);
+            } catch (error) {
+                displayResponse('sessionBetsResponse', {error: error.message}, true);
+            }
+        }
+
+        async function getAllBets() {
+            try {
+                const response = await fetch(`${API_URL()}/bets/`);
+                const data = await response.json();
+                displayResponse('allBetsResponse', data);
+            } catch (error) {
+                displayResponse('allBetsResponse', {error: error.message}, true);
+            }
+        }
+
+        // WebSocket
+        function connectWebSocket() {
+            const wsUrl = document.getElementById('wsUrl').value;
+            
+            if (ws) {
+                ws.close();
+            }
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                document.getElementById('wsStatus').innerHTML = 
+                    `<div class="flex items-center gap-3">
+                        <div class="pulse-dot w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span class="text-green-400 font-bold">✅ Connected to WebSocket</span>
+                    </div>`;
+                addWSMessage('🔌 Connected to live odds feed...', 'success');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    addWSMessage(`📊 Update: ${data.total_odds} odds from ${data.bookmakers?.length || 0} bookmakers`, 'info');
+                    addWSMessage(JSON.stringify(data, null, 2), 'data');
+                } catch (error) {
+                    addWSMessage('❌ Error parsing message: ' + error.message, 'error');
+                }
+            };
+
+            ws.onerror = (error) => {
+                document.getElementById('wsStatus').innerHTML = 
+                    `<div class="flex items-center gap-3">
+                        <span class="text-red-400 font-bold">❌ WebSocket Error</span>
+                    </div>`;
+                addWSMessage('❌ Connection error', 'error');
+            };
+
+            ws.onclose = () => {
+                document.getElementById('wsStatus').innerHTML = 
+                    `<div class="flex items-center gap-3">
+                        <div class="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <span class="text-gray-400 font-bold">⚫ Disconnected</span>
+                    </div>`;
+                addWSMessage('🔌 Connection closed', 'warning');
+            };
+        }
+
+        function disconnectWebSocket() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function addWSMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('wsMessages');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: 'text-green-400',
+                error: 'text-red-400',
+                warning: 'text-yellow-400',
+                info: 'text-blue-400',
+                data: 'text-gray-400'
+            };
+            const color = colors[type] || colors.info;
+            
+            if (messagesDiv.querySelector('.text-gray-500')) {
+                messagesDiv.innerHTML = `<div class="flex items-center gap-2 mb-2">
+                    <span class="pulse-dot w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span class="text-orange-400 font-bold">WebSocket Console</span>
+                </div>`;
+            }
+            
+            messagesDiv.innerHTML += `<div class="${color}">[${timestamp}] ${message}</div>\n`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Auto-test connection and update stats
+        window.onload = () => {
+            testConnection();
+            setInterval(updateStats, 30000); // Update stats every 30 seconds
+        };
+    </script>
+
+
+
+</body>
+</html>
+
+
+
+
+
